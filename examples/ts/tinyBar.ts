@@ -1,22 +1,23 @@
+/*! (c) 2016 Janis Dähne (MIT) */
 'use strict'
 
 //inspired by https://github.com/rstacruz/nprogress/blob/master/nprogress.js
-enum BarElement {
+export enum BarElement {
     barWrapper,
     bar,
 }
 
-enum TransitionState {
+export enum TransitionState {
     running,
     finished
 }
 
-enum TransitionType {
+export enum TransitionType {
     value,
     visibility
 }
 
-enum ProgressbarStatus {
+export enum ProgressbarStatus {
     /**
      * starting value (only once)
      */
@@ -32,7 +33,7 @@ enum ProgressbarStatus {
 }
 
 //from https://developer.mozilla.org/de/docs/Web/Events/transitionend
-interface TransitionEndEvent extends Event {
+export interface TransitionEndEvent extends Event {
     target:EventTarget
     type:string
     bubbles:boolean
@@ -45,7 +46,7 @@ interface TransitionEndEvent extends Event {
 /**
  * a class for the default settings (class because of functions)
  */
-class DefaultSettings implements Settings {
+export class DefaultSettings implements Settings {
 
     incrementTimeoutInMs = 300
 
@@ -123,7 +124,7 @@ class DefaultSettings implements Settings {
     }
 }
 
-interface Settings {
+export interface Settings {
 
     /**
      * the css classes to add the the bar wrapper
@@ -259,12 +260,12 @@ interface Settings {
  * the global default (static) settings for a tiny bar
  * @type {DefaultSettings}
  */
- var defaultSettings = new DefaultSettings()
+export var defaultSettings = new DefaultSettings()
 
 /**
  * a tiny (progress) bar
  */
- class TinyBar {
+export class TinyBar {
 
     /**
      * just the version
@@ -477,7 +478,6 @@ interface Settings {
      * @param callback called when the animation has finished
      */
     go(value:number, hideBarWhenFinished:boolean = true, callback?:() => void) {
-        
         if (this.status !== ProgressbarStatus.started) return
         
         //e.g. when .done calls this with value 0 the bar status should stay finished...
@@ -684,7 +684,7 @@ interface Settings {
 /**
  * a class to handle transition events and (queue) actions
  */
- class _TransitioQueue {
+export class _TransitioQueue {
 
     /**
      * the related tiny bar
@@ -838,17 +838,16 @@ interface Settings {
     }
 }
 
-interface TinyBarExport {
+export interface TinyBarExport {
     TinyBar: new (htmlParentDivId?:string, settings?:Settings, domElementsCreatedCallback?:() => void) => TinyBar,
     defaultSettings:Settings,
-    
-    BarElement: any,
-    TransitionState: any,
-    TransitionType: any,
-    ProgressbarStatus: any
+    BarElement: BarElement,
+    TransitionState: TransitionState,
+    TransitionType: TransitionType,
+    ProgressbarStatus: ProgressbarStatus
 }
 
-var myExport: TinyBarExport = {
+export var myExport: TinyBarExport = {
     TinyBar: TinyBar,
     defaultSettings: defaultSettings,
     BarElement: BarElement,

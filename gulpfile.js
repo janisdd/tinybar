@@ -57,7 +57,7 @@ gulp.task('full', function () {
             }
         }))
         .pipe(license('MIT', {tiny: true, year: 2016, organization: 'Janis Dähne'}))
-        .pipe(gulp.dest(parentFolder))
+        .pipe(gulp.dest(parentFolder + '/js'))
     
 
     normalJs
@@ -68,15 +68,26 @@ gulp.task('full', function () {
             suffix: '.min',
         }))
         .pipe(sourcemaps.write('./')) //relative path to dist
-        .pipe(gulp.dest(parentFolder))
+        .pipe(gulp.dest(parentFolder + '/js'))
 
 
     //copy ts files
-    gulp.src('src/*.ts')
+    //gulp.src('src/*.ts')
+    gulp.src('src_ts/*.ts')
         .pipe(license('MIT', {tiny: true, year: 2016, organization: 'Janis Dähne'}))
-        .pipe(gulp.dest(parentFolder))
+        .pipe(gulp.dest(parentFolder + '/ts'))
 
-    //generate .d.ts files
-    tsResult.dts.pipe(gulp.dest(parentFolder))
+    /*
+    var tsResult2 =  gulp.src('src_ts/*.ts')
+        .pipe(ts({
+            module: "commonjs",
+            target: "es5",
+            removeComments: false,
+            declaration: true
+        }))
+    */
+    
+    //generate no .d.ts files
+    //tsResult2.dts.pipe(gulp.dest(parentFolder))
 
 })

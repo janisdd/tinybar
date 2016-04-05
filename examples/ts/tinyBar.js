@@ -1,16 +1,4 @@
 /*! (c) 2016 Janis Dähne (MIT) */
-;(function(root, factory) {
-  if (typeof define === 'function' && define.amd) {
-    define([], factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory();
-  } else {
-    root.TinyBar = factory();
-  }
-    
-    
-    
-}(this, function() {
 'use strict';
 //inspired by https://github.com/rstacruz/nprogress/blob/master/nprogress.js
 (function (BarElement) {
@@ -128,7 +116,6 @@ var TinyBar = (function () {
      * @param domElementsCreatedCallback  called when the bar and bar wrapper are created and inserted in the dom
      */
     function TinyBar(htmlParentDivId, settings, domElementsCreatedCallback) {
-        if (domElementsCreatedCallback === void 0) { domElementsCreatedCallback = null; }
         /**
          * just the version
          * @type {string}
@@ -246,13 +233,16 @@ var TinyBar = (function () {
                         this.settings[key] = value;
                 }
             }
+        /*
         if (this.settings.changeValueElement === this.settings.changeVisibilityElement) {
+
             if (this.settings.changeValueProperty === this.settings.changeVisibilityProperty) {
                 console.error(this.projectName + ': changeValueProperty can\'t be the same as changeVisibilityProperty ' +
-                    'because we need to watch the transition events');
+                    'because we need to watch the transition events')
             }
         }
-        /* normally the bar is only animated by this class and only the appropriated properties so nully value should be ok
+
+         normally the bar is only animated by this class and only the appropriated properties so nully value should be ok
          -> no filter for transitionend events in the transition queue
          if (!this.settings.changeValueProperty) {
          console.error(this.projectName + ': changeValueProperty needs to be set')
@@ -274,7 +264,7 @@ var TinyBar = (function () {
     TinyBar.prototype.start = function (startingValue) {
         if (startingValue === void 0) { startingValue = 0.5; }
         if (this.status === ProgressbarStatus.started)
-            return;
+            return this;
         this.status = ProgressbarStatus.started;
         //clear all old queue actions (from old .done calls)
         this.transitionQueue.valueChangedQueue = [];
@@ -295,6 +285,8 @@ var TinyBar = (function () {
      */
     TinyBar.prototype.go = function (value, hideBarWhenFinished, callback) {
         if (hideBarWhenFinished === void 0) { hideBarWhenFinished = true; }
+        if (this.status !== ProgressbarStatus.started)
+            return;
         //e.g. when .done calls this with value 0 the bar status should stay finished...
         this.status = ProgressbarStatus.started;
         this._go(value, callback, hideBarWhenFinished);
@@ -597,10 +589,11 @@ var _TransitioQueue = (function () {
     return _TransitioQueue;
 }());
 exports._TransitioQueue = _TransitioQueue;
-var myExport = {
+exports.myExport = {
     TinyBar: TinyBar,
-    defaultSettings: exports.defaultSettings
+    defaultSettings: exports.defaultSettings,
+    BarElement: BarElement,
+    TransitionState: TransitionState,
+    TransitionType: TransitionType,
+    ProgressbarStatus: ProgressbarStatus
 };
-
-return myExport;
-}));

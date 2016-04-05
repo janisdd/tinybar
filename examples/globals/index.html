@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TinyBarExamples</title>
+
+    <style>
+        .wrapper {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        .example {
+            margin: 0.5em;
+            width: 100%;
+            min-height: 100px;
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="wrapper">
+
+    <div class="example">
+        <div id="ex1"></div>
+        Global
+        <br />
+
+        <button onclick="ex1.start()">start</button>
+        <button onclick="ex1.go(30)">go to 30 % </button>
+        <button onclick="ex1.go(80)">go to 80 % </button>
+        <button onclick="ex1.done()">done</button>
+
+        <pre>
+            <code>
+config:
+var bar = new Tiny.TinyBar()
+
+start:
+bar.start()
+
+go:
+bar.go(x)
+
+done:
+bar.done()
+            </code>
+        </pre>
+    </div>
+
+    <div class="example">
+        <div id="ex2"></div>
+        <br />
+        <button onclick="ex2.start()">start</button>
+        <button onclick="ex2.go(30)">go to 30 % </button>
+        <button onclick="ex2.go(80)">go to 80 % </button>
+        <button onclick="ex2.clearAutoIncrement()">clear autoincrement</button>
+        <button onclick="ex2.done()">done</button>
+
+        <pre>
+            <code>
+autoincrement won't every reach 100%...
+
+config:
+var bar = new Tiny.TinyBar('ex2 (html parent)', {
+            backgroundColor: 'red',
+            height: '4px'
+        })
+start:
+bar.start()
+bar.autoIncrement()
+            </code>
+        </pre>
+    </div>
+
+
+    <div class="example">
+        <div id="ex3"></div>
+        <br />
+        <button onclick="ex3.start()">start</button>
+        <button onclick="ex3.go(30)">go to 30 % </button>
+        <button onclick="ex3.go(80)">go to 80 % </button>
+        <button onclick="ex3.clearAutoIncrement()">clear autoincrement</button>
+        <button onclick="ex3.done()">done</button>
+
+        <pre>
+            <code>
+normally the wrapper div would change it's height but in this case we want the wrapper to keep it's height...
+so we change the bar visiblity transition/animation to a custom function and set the changeVisibilityElement and
+changeVisibilityProperty
+
+config:
+var bar = new Tiny.TinyBar('ex3', {
+            backgroundColor: 'green',
+            height: '4px',
+            boxShadow: '',
+            changeVisibilityElement: Tiny.BarElement.bar,
+            changeVisibilityProperty: 'bottom',
+            changeBarVisibility(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, newVisibility:boolean) {
+                if (newVisibility) {
+
+                    barDiv.style.bottom = '0'
+
+                } else {
+                    barDiv.style.bottom = '100%'
+                }
+            }
+        })
+start:
+bar.start()
+bar.autoIncrement()
+            </code>
+        </pre>
+    </div>
+
+
+    <div class="example">
+        <div id="ex4" style="height: 2px"></div>
+        <br />
+        <button onclick="ex4.start()">start</button>
+        <button onclick="ex4.inc()">inc</button>
+        <button onclick="ex4.done()">done</button>
+
+        <pre>
+            <code>
+like example 3 but here we just set the height css style property of the hosting div (parent of the wrapping div)
+config:
+var bar = new Tiny.TinyBar(this.el, {
+        backgroundColor: 'orange',
+        boxShadow: ''
+    })
+            </code>
+        </pre>
+    </div>
+
+
+
+    <div class="example">
+        <div id="ex5" style="height: 2px"></div>
+        <br />
+        <button onclick="ex5.start()">start</button>
+        <button onclick="ex5.done()">done</button>
+
+        <pre>
+            <code>
+bar from right to left
+
+config:
+var bar = new Tiny.TinyBar(this.el, {
+        extendInitialBarStyle(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
+            barDiv.style.right = '0'
+            barDiv.style.left = '100%'
+        },
+        changeValueFunc(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, value:number) {
+            barDiv.style.left = (100 - value) + '%'
+        }
+    })
+start:
+bar.start()
+bar.autoIncrement()
+            </code>
+        </pre>
+    </div>
+
+    <div class="example">
+        <div id="ex6" style="height: 2px"></div>
+        <br />
+        <button onclick="ex6.start()">start</button>
+        <button onclick="ex6.done(true)">done(true)</button>
+        <button onclick="ex6.done(false)">done(false)</button>
+
+        <pre>
+            <code>
+
+hide bar or not (when done)?
+
+config:
+var bar = new Tiny.TinyBar(this.el)
+start:
+bar.start()
+bar.autoIncrement()
+
+done(hideBar):
+bar.done(hideBar)
+
+            </code>
+        </pre>
+    </div>
+
+
+
+</div>
+
+
+
+
+<!--
+-->
+<script src="../js/tinyBar.js"></script>
+<script src="main.js"></script>
+
+<!--
+
+<script src="http://localhost:8080/bundle.js"></script>
+-->
+
+</body>
+</html>

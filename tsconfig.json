@@ -6,8 +6,8 @@
     "removeComments": false
   },
   "exclude": [
-    "../node_modules",
-    "../dist",
-    "../example"
+    "node_modules",
+    "dist",
+    "src_ts"
   ]
 }
