@@ -329,24 +329,55 @@ export class TinyBar {
 
     /**
      * creates a new tiny (progress) bar
-     * @param htmlParentDivId the parent div id or null (to position the progressbar on the top
      * @param settings the settings for the new tiny bar
+     * @param htmlParentDivId the parent div id or null (to position the progressbar on the top
      * @param domElementsCreatedCallback  called when the bar and bar wrapper are created and inserted in the dom
      */
-    constructor(htmlParentDivId?:string, settings?:Settings, domElementsCreatedCallback?:() => void) {
+    constructor(settings?:Settings | string, htmlParentDivId?:string | Settings, domElementsCreatedCallback?:() => void) {
 
-        //first apply settings
-        this._setSettings(settings)
+        //if first arg is a string assume that the second arg represents the settings...
+        if (typeof settings === 'string') {
+            let temp = htmlParentDivId
 
-        //then create html
-        if (htmlParentDivId) {
-            this.shouldPositionTopMost = false
-            this._createBar(document.getElementById(htmlParentDivId), false, domElementsCreatedCallback)
+            htmlParentDivId = <string>settings
+            settings = temp
 
+            //first apply settings
+            this._setSettings(settings)
+
+            if (htmlParentDivId) {
+                this.shouldPositionTopMost = false
+                this._createBar(document.getElementById(<string>htmlParentDivId), false, domElementsCreatedCallback)
+
+            } else {
+                //create bar on the top
+                this.shouldPositionTopMost = true
+                this._createBar(document.body, true, domElementsCreatedCallback)
+            }
+
+        }
+        else if (typeof htmlParentDivId === 'string') {
+
+            //first apply settings
+            this._setSettings(settings)
+
+            if (htmlParentDivId) {
+                this.shouldPositionTopMost = false
+                this._createBar(document.getElementById(htmlParentDivId), false, domElementsCreatedCallback)
+
+            } else {
+                //create bar on the top
+                this.shouldPositionTopMost = true
+                this._createBar(document.body, true, domElementsCreatedCallback)
+            }
         } else {
+            //first apply settings
+            this._setSettings(settings)
+            
             //create bar on the top
             this.shouldPositionTopMost = true
             this._createBar(document.body, true, domElementsCreatedCallback)
+
         }
 
         this.transitionQueue = new _TransitioQueue(this)
@@ -359,7 +390,7 @@ export class TinyBar {
      * @param domElementsCreatedCallback called when the bar and bar wrapper are created and inserted in the dom
      * @private
      */
-    private _createBar(parentHtmlElement, positionTopMost:boolean, domElementsCreatedCallback?:() => void) {
+    private _createBar(parentHtmlElement:HTMLElement, positionTopMost:boolean, domElementsCreatedCallback?:() => void) {
 
         //create wrapper div
         let barWrapper = document.createElement('div')
@@ -385,7 +416,7 @@ export class TinyBar {
         parentHtmlElement.appendChild(barWrapper)
 
         if (domElementsCreatedCallback)
-            domElementsCreatedCallback()
+            domElementsCreatedCallback.call(this)
 
     }
 
@@ -417,13 +448,13 @@ export class TinyBar {
                 }
             }
         /*
-        if (this.settings.changeValueElement === this.settings.changeVisibilityElement) {
+         if (this.settings.changeValueElement === this.settings.changeVisibilityElement) {
 
-            if (this.settings.changeValueProperty === this.settings.changeVisibilityProperty) {
-                console.error(this.projectName + ': changeValueProperty can\'t be the same as changeVisibilityProperty ' +
-                    'because we need to watch the transition events')
-            }
-        }
+         if (this.settings.changeValueProperty === this.settings.changeVisibilityProperty) {
+         console.error(this.projectName + ': changeValueProperty can\'t be the same as changeVisibilityProperty ' +
+         'because we need to watch the transition events')
+         }
+         }
 
          normally the bar is only animated by this class and only the appropriated properties so nully value should be ok
          -> no filter for transitionend events in the transition queue
@@ -448,6 +479,8 @@ export class TinyBar {
 
     /**
      * starts the bar and shows it
+     * @param startingValue the value to start with
+     * @returns {TinyBar}
      */
     start(startingValue:number = 0.5) {
 
@@ -474,12 +507,12 @@ export class TinyBar {
     /**
      * goes to the given percentage (0 <= percentage <= 100)
      * @param value the value between 0 and 100 to go to
-     * @param hideBarWhenFinished when value >= 100 then the done method is called with this parameter as argument
      * @param callback called when the animation has finished
+     * @param hideBarWhenFinished when value >= 100 then the done method is called with this parameter as argument
      */
-    go(value:number, hideBarWhenFinished:boolean = true, callback?:() => void) {
+    go(value:number, callback?:() => void, hideBarWhenFinished:boolean = true) {
         if (this.status !== ProgressbarStatus.started) return
-        
+
         //e.g. when .done calls this with value 0 the bar status should stay finished...
         this.status = ProgressbarStatus.started
 
@@ -489,12 +522,13 @@ export class TinyBar {
     /**
      * goes to the given percentage (0 <= percentage <= 100)
      * @param value the value between 0 and 100 to go to
-     * @param callback called when the animation has finished
+     * @param callback called when the value is set and the animation has finished
      * @param hideBarWhenFinished when value >= 100 then the done method is called with this parameter as argument
-     * @param setBarStatus true: set the bar status to running, false: do not touch the bar status
      * @private
      */
     _go(value:number, callback:() => void, hideBarWhenFinished:boolean) {
+
+        var self = this
 
         if (value >= 0) {
             //&& this.status !== ProgressbarStatus.finished //when the bar finished then only allow .start
@@ -512,7 +546,7 @@ export class TinyBar {
                     this._getValueChangingElement().style.transition = this.settings.changeValueTransition
 
                     if (callback)
-                        callback()
+                        callback.call(self)
                 })
 
                 this.transitionQueue._beforeTransition(TransitionType.value)
@@ -530,7 +564,7 @@ export class TinyBar {
                 //provide callback
                 this.transitionQueue._executeActionAfterTransition(TransitionType.value, () => {
                     if (callback)
-                        callback()
+                        callback.call(self)
                 })
 
                 this.transitionQueue._beforeTransition(TransitionType.value)
@@ -543,9 +577,11 @@ export class TinyBar {
         }
     }
 
+
     /**
-     * increments the value by a random value but never reaches 100%
+     *      * increments the value by a random value but never reaches 100%
      * taken from https://github.com/rstacruz/nprogress/blob/master/nprogress.js
+     * @param callback called when the value is set and the animation has finished
      */
     inc(callback?:() => void) {
         if (this.value >= 100) {
@@ -600,7 +636,7 @@ export class TinyBar {
                 //self._go(0,null, hideBar, false)
                 setTimeout(() => {
                     self._go(0, () => {
-                        if (callback) callback()
+                        if (callback) callback.call(self)
                     }, hideBar)
                 }, 100)
             })
@@ -631,7 +667,7 @@ export class TinyBar {
 
                     //bar wont hide so call the callback now
                     if (callback)
-                        callback()
+                        callback.call(self)
                 }
             })
             this.transitionQueue._beforeTransition(TransitionType.value)
@@ -647,14 +683,15 @@ export class TinyBar {
 
     /**
      * starts automatically incrementing the value of the bar (calls .inc in a setInterval loop)
+     * @param callback called when the value is set and the animation has finished
      */
-    autoIncrement() {
+    autoIncrement(callback?:() => void) {
 
         //first clear old increment else we could lose the clear handle for the old increment
         this.clearAutoIncrement()
 
         this.tricklingHandle = setInterval(() => {
-            this.inc()
+            this.inc(callback)
         }, this.settings.incrementTimeoutInMs)
     }
 
@@ -839,15 +876,15 @@ export class _TransitioQueue {
 }
 
 export interface TinyBarExport {
-    TinyBar: new (htmlParentDivId?:string, settings?:Settings, domElementsCreatedCallback?:() => void) => TinyBar,
+    TinyBar:new (settings?:Settings, htmlParentDivId?:string, domElementsCreatedCallback?:() => void) => TinyBar,
     defaultSettings:Settings,
-    BarElement: BarElement,
-    TransitionState: TransitionState,
-    TransitionType: TransitionType,
-    ProgressbarStatus: ProgressbarStatus
+    BarElement:BarElement,
+    TransitionState:TransitionState,
+    TransitionType:TransitionType,
+    ProgressbarStatus:ProgressbarStatus
 }
 
-export var myExport: TinyBarExport = {
+export var myExport = { //: TinyBarExport
     TinyBar: TinyBar,
     defaultSettings: defaultSettings,
     BarElement: BarElement,

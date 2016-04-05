@@ -111,11 +111,11 @@ exports.defaultSettings = new DefaultSettings();
 var TinyBar = (function () {
     /**
      * creates a new tiny (progress) bar
-     * @param htmlParentDivId the parent div id or null (to position the progressbar on the top
      * @param settings the settings for the new tiny bar
+     * @param htmlParentDivId the parent div id or null (to position the progressbar on the top
      * @param domElementsCreatedCallback  called when the bar and bar wrapper are created and inserted in the dom
      */
-    function TinyBar(htmlParentDivId, settings, domElementsCreatedCallback) {
+    function TinyBar(settings, htmlParentDivId, domElementsCreatedCallback) {
         /**
          * just the version
          * @type {string}
@@ -166,14 +166,39 @@ var TinyBar = (function () {
          * @type {null}
          */
         this.tricklingHandle = null;
-        //first apply settings
-        this._setSettings(settings);
-        //then create html
-        if (htmlParentDivId) {
-            this.shouldPositionTopMost = false;
-            this._createBar(document.getElementById(htmlParentDivId), false, domElementsCreatedCallback);
+        //if first arg is a string assume that the second arg represents the settings...
+        if (typeof settings === 'string') {
+            var temp = htmlParentDivId;
+            htmlParentDivId = settings;
+            settings = temp;
+            //first apply settings
+            this._setSettings(settings);
+            if (htmlParentDivId) {
+                this.shouldPositionTopMost = false;
+                this._createBar(document.getElementById(htmlParentDivId), false, domElementsCreatedCallback);
+            }
+            else {
+                //create bar on the top
+                this.shouldPositionTopMost = true;
+                this._createBar(document.body, true, domElementsCreatedCallback);
+            }
+        }
+        else if (typeof htmlParentDivId === 'string') {
+            //first apply settings
+            this._setSettings(settings);
+            if (htmlParentDivId) {
+                this.shouldPositionTopMost = false;
+                this._createBar(document.getElementById(htmlParentDivId), false, domElementsCreatedCallback);
+            }
+            else {
+                //create bar on the top
+                this.shouldPositionTopMost = true;
+                this._createBar(document.body, true, domElementsCreatedCallback);
+            }
         }
         else {
+            //first apply settings
+            this._setSettings(settings);
             //create bar on the top
             this.shouldPositionTopMost = true;
             this._createBar(document.body, true, domElementsCreatedCallback);
@@ -207,7 +232,7 @@ var TinyBar = (function () {
         barWrapper.appendChild(bar);
         parentHtmlElement.appendChild(barWrapper);
         if (domElementsCreatedCallback)
-            domElementsCreatedCallback();
+            domElementsCreatedCallback.call(this);
     };
     /**
      * sets the settings for this bar (call only once per setup ... when called a second time the
@@ -234,13 +259,13 @@ var TinyBar = (function () {
                 }
             }
         /*
-        if (this.settings.changeValueElement === this.settings.changeVisibilityElement) {
+         if (this.settings.changeValueElement === this.settings.changeVisibilityElement) {
 
-            if (this.settings.changeValueProperty === this.settings.changeVisibilityProperty) {
-                console.error(this.projectName + ': changeValueProperty can\'t be the same as changeVisibilityProperty ' +
-                    'because we need to watch the transition events')
-            }
-        }
+         if (this.settings.changeValueProperty === this.settings.changeVisibilityProperty) {
+         console.error(this.projectName + ': changeValueProperty can\'t be the same as changeVisibilityProperty ' +
+         'because we need to watch the transition events')
+         }
+         }
 
          normally the bar is only animated by this class and only the appropriated properties so nully value should be ok
          -> no filter for transitionend events in the transition queue
@@ -260,6 +285,8 @@ var TinyBar = (function () {
     };
     /**
      * starts the bar and shows it
+     * @param startingValue the value to start with
+     * @returns {TinyBar}
      */
     TinyBar.prototype.start = function (startingValue) {
         if (startingValue === void 0) { startingValue = 0.5; }
@@ -280,10 +307,10 @@ var TinyBar = (function () {
     /**
      * goes to the given percentage (0 <= percentage <= 100)
      * @param value the value between 0 and 100 to go to
-     * @param hideBarWhenFinished when value >= 100 then the done method is called with this parameter as argument
      * @param callback called when the animation has finished
+     * @param hideBarWhenFinished when value >= 100 then the done method is called with this parameter as argument
      */
-    TinyBar.prototype.go = function (value, hideBarWhenFinished, callback) {
+    TinyBar.prototype.go = function (value, callback, hideBarWhenFinished) {
         if (hideBarWhenFinished === void 0) { hideBarWhenFinished = true; }
         if (this.status !== ProgressbarStatus.started)
             return;
@@ -294,13 +321,13 @@ var TinyBar = (function () {
     /**
      * goes to the given percentage (0 <= percentage <= 100)
      * @param value the value between 0 and 100 to go to
-     * @param callback called when the animation has finished
+     * @param callback called when the value is set and the animation has finished
      * @param hideBarWhenFinished when value >= 100 then the done method is called with this parameter as argument
-     * @param setBarStatus true: set the bar status to running, false: do not touch the bar status
      * @private
      */
     TinyBar.prototype._go = function (value, callback, hideBarWhenFinished) {
         var _this = this;
+        var self = this;
         if (value >= 0) {
             //&& this.status !== ProgressbarStatus.finished //when the bar finished then only allow .start
             if (value <= this.value) {
@@ -312,7 +339,7 @@ var TinyBar = (function () {
                 this.transitionQueue._executeActionAfterTransition(TransitionType.value, function () {
                     _this._getValueChangingElement().style.transition = _this.settings.changeValueTransition;
                     if (callback)
-                        callback();
+                        callback.call(self);
                 });
                 this.transitionQueue._beforeTransition(TransitionType.value);
                 this.settings.changeValueFunc(this.barWrapper, this.bar, value);
@@ -327,7 +354,7 @@ var TinyBar = (function () {
                 //provide callback
                 this.transitionQueue._executeActionAfterTransition(TransitionType.value, function () {
                     if (callback)
-                        callback();
+                        callback.call(self);
                 });
                 this.transitionQueue._beforeTransition(TransitionType.value);
                 this.settings.changeValueFunc(this.barWrapper, this.bar, myValue);
@@ -338,8 +365,9 @@ var TinyBar = (function () {
         }
     };
     /**
-     * increments the value by a random value but never reaches 100%
+     *      * increments the value by a random value but never reaches 100%
      * taken from https://github.com/rstacruz/nprogress/blob/master/nprogress.js
+     * @param callback called when the value is set and the animation has finished
      */
     TinyBar.prototype.inc = function (callback) {
         if (this.value >= 100) {
@@ -395,7 +423,7 @@ var TinyBar = (function () {
                 setTimeout(function () {
                     self._go(0, function () {
                         if (callback)
-                            callback();
+                            callback.call(self);
                     }, hideBar);
                 }, 100);
             });
@@ -419,7 +447,7 @@ var TinyBar = (function () {
                 else {
                     //bar wont hide so call the callback now
                     if (callback)
-                        callback();
+                        callback.call(self);
                 }
             });
             this.transitionQueue._beforeTransition(TransitionType.value);
@@ -433,13 +461,14 @@ var TinyBar = (function () {
     };
     /**
      * starts automatically incrementing the value of the bar (calls .inc in a setInterval loop)
+     * @param callback called when the value is set and the animation has finished
      */
-    TinyBar.prototype.autoIncrement = function () {
+    TinyBar.prototype.autoIncrement = function (callback) {
         var _this = this;
         //first clear old increment else we could lose the clear handle for the old increment
         this.clearAutoIncrement();
         this.tricklingHandle = setInterval(function () {
-            _this.inc();
+            _this.inc(callback);
         }, this.settings.incrementTimeoutInMs);
     };
     /**

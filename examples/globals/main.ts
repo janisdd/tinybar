@@ -13,7 +13,9 @@ class Example1 {
     }
     
     go(percentage) {
-        this.bar.go(percentage)
+        this.bar.go(percentage, function() {
+            console.log(this)
+        })
     }
     
     done() {
@@ -129,7 +131,7 @@ class Example5 {
     bar = null
 
     constructor() {
-        this.bar = new Tiny.TinyBar(this.el, {
+        this.bar = new Tiny.TinyBar({
             extendInitialBarStyle(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
                 barDiv.style.right = '0'
                 barDiv.style.left = '100%'
@@ -137,7 +139,7 @@ class Example5 {
             changeValueFunc(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, value:number) {
                 barDiv.style.left = (100 - value) + '%'
             }
-        })
+        }, this.el)
     }
 
     start() {
@@ -173,3 +175,33 @@ class Example6 {
     }
 }
 var ex6 = new Example6()
+
+
+class Example7 {
+
+    el = 'ex7'
+    bar = null
+    func = function () {
+        document.getElementById('ex7Status').innerText = this.value + ' status: ' + this.status
+    }
+
+    constructor() {
+        this.bar = new Tiny.TinyBar(this.el)
+    }
+
+    start() {
+        this.bar.start().autoIncrement(this.func)
+    }
+    go(value: number) {
+        this.bar.go(value, this.func)
+    }
+
+    clear() {
+        this.bar.clearAutoIncrement()
+    }
+
+    done() {
+        this.bar.done(true, this.func)
+    }
+}
+var ex7 = new Example7()

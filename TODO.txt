@@ -1,9 +1,4 @@
 
-* create dist
-
 * BUG: calling tinyProgress.start(true).done(false) multiple times will break the bar
   this is because the transition is set to the fast transition but never back and somehow the transition events
   aren't called...
-
-* TODO typescript can create umd but webpack cant consume umd's created by typescript...
-  (with teh plugin we need to change to the ifs then it works so only amd is consumed by webpack)

@@ -9,7 +9,9 @@ var Example1 = (function () {
         this.bar.start();
     };
     Example1.prototype.go = function (percentage) {
-        this.bar.go(percentage);
+        this.bar.go(percentage, function () {
+            console.log(this);
+        });
     };
     Example1.prototype.done = function () {
         this.bar.done();
@@ -101,7 +103,7 @@ var Example5 = (function () {
     function Example5() {
         this.el = 'ex5';
         this.bar = null;
-        this.bar = new Tiny.TinyBar(this.el, {
+        this.bar = new Tiny.TinyBar({
             extendInitialBarStyle: function (barDiv, shouldPositionTopMost) {
                 barDiv.style.right = '0';
                 barDiv.style.left = '100%';
@@ -109,7 +111,7 @@ var Example5 = (function () {
             changeValueFunc: function (barWrapperDiv, barDiv, value) {
                 barDiv.style.left = (100 - value) + '%';
             }
-        });
+        }, this.el);
     }
     Example5.prototype.start = function () {
         this.bar.start().autoIncrement();
@@ -138,3 +140,27 @@ var Example6 = (function () {
     return Example6;
 }());
 var ex6 = new Example6();
+var Example7 = (function () {
+    function Example7() {
+        this.el = 'ex7';
+        this.bar = null;
+        this.func = function () {
+            document.getElementById('ex7Status').innerText = this.value + ' status: ' + this.status;
+        };
+        this.bar = new Tiny.TinyBar(this.el);
+    }
+    Example7.prototype.start = function () {
+        this.bar.start().autoIncrement(this.func);
+    };
+    Example7.prototype.go = function (value) {
+        this.bar.go(value, this.func);
+    };
+    Example7.prototype.clear = function () {
+        this.bar.clearAutoIncrement();
+    };
+    Example7.prototype.done = function () {
+        this.bar.done(true, this.func);
+    };
+    return Example7;
+}());
+var ex7 = new Example7();

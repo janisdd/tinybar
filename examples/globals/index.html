@@ -190,6 +190,31 @@ bar.done(hideBar)
     </div>
 
 
+    <div class="example">
+        <div id="ex7" style="height: 2px"></div>
+        <br />
+        <span id="ex7Status"></span>
+        <br />
+        <button onclick="ex7.start()">start</button>
+        <button onclick="ex7.go(30)">go to 30 % </button>
+        <button onclick="ex7.go(80)">go to 80 % </button>
+        <button onclick="ex7.clear()">clear autoincrement</button>
+        <button onclick="ex7.done()">done</button>
+
+        <pre>
+            <code>
+
+some callbacks
+
+config:
+var bar = new Tiny.TinyBar(this.el)
+start:
+bar.start()
+bar.autoIncrement()
+            </code>
+        </pre>
+    </div>
+
 
 </div>
 
