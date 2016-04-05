@@ -233,10 +233,9 @@ tinybar.start().autoIncrement()
 tinybar.done()
 ```
 
+For more examples see the `examples` dir 
+
 ## Hints
 
-All callback are called with the corresponding TinyBar as this value
+All callbacks are called with the corresponding TinyBar as the `this` value
 
-
-
-For more examples see the `examples` dir 
