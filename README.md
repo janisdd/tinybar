@@ -135,7 +135,8 @@ default: `'all 0.2s ease'`
 ```js
 {
     barDiv.style.right = (100 - value) + '%'
-}```
+}
+```
 
 ## Enum BarElement
 
