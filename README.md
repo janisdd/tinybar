@@ -132,10 +132,10 @@ default: `'all 0.2s ease'`
  
 * `changeValueFunc: (barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, value:number) => void` function to change to value of the bar
  default: 
- ```js
- {
-     barDiv.style.right = (100 - value) + '%'
- }```
+```js
+{
+    barDiv.style.right = (100 - value) + '%'
+}```
 
 ## Enum BarElement
 
