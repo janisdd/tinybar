@@ -6,8 +6,6 @@
     "removeComments": false
   },
   "exclude": [
-    "node_modules",
-    "globals",
-    "ts"
+    "node_modules"
     ]
 }

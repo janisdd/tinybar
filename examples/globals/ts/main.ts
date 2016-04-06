@@ -4,6 +4,7 @@ import {TinyBarExport} from "../../libs/tinyBar";
 declare var TinyBar: TinyBarExport
 var Tiny: TinyBarExport = TinyBar //dunno why i used Tiny as name... i don't like new TinyBar.TinyBar()
 
+//Tiny.defaultSettings.backgroundColor = 'black'
 
 class Example1 {
     

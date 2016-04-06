@@ -156,12 +156,21 @@ default: `'all 0.2s ease'`
 * `BarElement.barWrapper` represents the bar wrapper
 * `BarElement.bar` represents the bar
 
+access:
+```js
+var _ = TinyBar.BarElement.bar
+```
 
 ## Enum ProgressbarStatus
 
 * `ProgressbarStatus.initial` only when the bar is created
 * `ProgressbarStatus.started` the bar is "running"
 * `ProgressbarStatus.finished` the bar has finished
+
+access:
+```js
+var _ = TinyBar.ProgressbarStatus.bar
+```
 
 ## Example Settings
 
@@ -207,9 +216,7 @@ TODO which options should not be changed??
 
 
 
-
-
-## Functions
+## Functions on a TinyBar instance
 
 * `constructor(settings?:Settings, htmlParentDivId?:string, domElementsCreatedCallback?:() => void) => TinyBar`  
 `settings` the settings for the bar  
@@ -234,6 +241,16 @@ taken from https://github.com/rstacruz/nprogress/blob/master/nprogress.js (check
 
 * `clearAutoIncrement() => void` clears the auto increment interval
 
+## Default Settings
+
+Every time an instance of TinyBar is created the default settings are applied...
+
+to change the default settings (e.g. you want all bars to be black) try
+
+```js
+TinyBar.defaultSettings.backgroundColor = 'black'
+```
+where `TinyBar.defaultSettings` has the type `Settings`
 
 ## Usage
 

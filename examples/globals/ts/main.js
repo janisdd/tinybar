@@ -1,5 +1,6 @@
 'use strict';
-var Tiny = TinyBar;
+var Tiny = TinyBar; //dunno why i used Tiny as name... i don't like new TinyBar.TinyBar()
+//Tiny.defaultSettings.backgroundColor = 'black'
 var Example1 = (function () {
     function Example1() {
         this.el = 'ex1';
