@@ -56,12 +56,12 @@ bar.done()
         <button onclick="ex2.start()">start</button>
         <button onclick="ex2.go(30)">go to 30 % </button>
         <button onclick="ex2.go(80)">go to 80 % </button>
-        <button onclick="ex2.clearAutoIncrement()">clear autoincrement</button>
+        <button onclick="ex2.clearAutoIncrement()">clear auto increment</button>
         <button onclick="ex2.done()">done</button>
 
         <pre>
             <code>
-autoincrement won't every reach 100%...
+auto increment won't ever reach 100%...
 
 config:
 var bar = new Tiny.TinyBar('ex2 (html parent)', {
@@ -82,22 +82,20 @@ bar.autoIncrement()
         <button onclick="ex3.start()">start</button>
         <button onclick="ex3.go(30)">go to 30 % </button>
         <button onclick="ex3.go(80)">go to 80 % </button>
-        <button onclick="ex3.clearAutoIncrement()">clear autoincrement</button>
+        <button onclick="ex3.clearAutoIncrement()">clear auto increment</button>
         <button onclick="ex3.done()">done</button>
 
         <pre>
             <code>
-normally the wrapper div would change it's height but in this case we want the wrapper to keep it's height...
-so we change the bar visiblity transition/animation to a custom function and set the changeVisibilityElement and
-changeVisibilityProperty
+normally we set the opacity property to change the visibility of the bar wrapper...
+but you can change it to use e.g. the bottom style property
 
 config:
 var bar = new Tiny.TinyBar('ex3', {
-            backgroundColor: 'green',
+            backgroundColor: 'orange',
             height: '4px',
             boxShadow: '',
             changeVisibilityElement: Tiny.BarElement.bar,
-            changeVisibilityProperty: 'bottom',
             changeBarVisibility(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, newVisibility:boolean) {
                 if (newVisibility) {
 
@@ -111,26 +109,6 @@ var bar = new Tiny.TinyBar('ex3', {
 start:
 bar.start()
 bar.autoIncrement()
-            </code>
-        </pre>
-    </div>
-
-
-    <div class="example">
-        <div id="ex4" style="height: 2px"></div>
-        <br />
-        <button onclick="ex4.start()">start</button>
-        <button onclick="ex4.inc()">inc</button>
-        <button onclick="ex4.done()">done</button>
-
-        <pre>
-            <code>
-like example 3 but here we just set the height css style property of the hosting div (parent of the wrapping div)
-config:
-var bar = new Tiny.TinyBar(this.el, {
-        backgroundColor: 'orange',
-        boxShadow: ''
-    })
             </code>
         </pre>
     </div>
@@ -168,22 +146,18 @@ bar.autoIncrement()
         <div id="ex6" style="height: 2px"></div>
         <br />
         <button onclick="ex6.start()">start</button>
+
+        <button onclick="ex6.go(42)">go(42)</button>
+        <button onclick="ex6.go(84)">go(84)</button>
+        <button onclick="ex6.auto()">auto increment</button>
+
         <button onclick="ex6.done(true)">done(true)</button>
         <button onclick="ex6.done(false)">done(false)</button>
 
         <pre>
             <code>
 
-hide bar or not (when done)?
-
-config:
-var bar = new Tiny.TinyBar(this.el)
-start:
-bar.start()
-bar.autoIncrement()
-
-done(hideBar):
-bar.done(hideBar)
+when the bar auto increments and we set a new value < current value then the incrementing stops
 
             </code>
         </pre>
@@ -216,20 +190,50 @@ bar.autoIncrement()
     </div>
 
 
+    <div class="example">
+        <div id="ex8" style="height: 2px"></div>
+        <br />
+        <button onclick="ex8.start()">start</button>
+
+        <pre>
+            <code>
+when go is called with value >= 100 then done is implicitly called
+
+config:
+var bar = new Tiny.TinyBar(this.el)
+
+start:
+var self = this
+bar.start(10, () => {
+    bar.go(20, () => {
+        bar.go(50, () => {
+            bar.go(70, () => {
+                bar.go(90, () => {
+                    self.bar.go(100)
+                })
+            })
+        })
+    })
+})
+            </code>
+        </pre>
+    </div>
+
 </div>
 
 
 
 
+
 <!--
--->
-<script src="../js/tinyBar.js"></script>
+
 <script src="main.js"></script>
-
-<!--
-
-<script src="http://localhost:8080/bundle.js"></script>
 -->
+<!--
+-->
+<script src="http://localhost:8080/bundle.js"></script>
+
+
 
 </body>
 </html>

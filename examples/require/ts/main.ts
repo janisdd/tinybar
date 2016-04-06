@@ -1,7 +1,15 @@
 'use strict'
 
-declare var TinyBar
-var Tiny: TinyBarExport = TinyBar
+
+import Tiny = require('../../libs/tinyBar')
+
+
+//the export hing is a bit dirty... we exported all...
+
+//full syntax support for Tiny
+
+//Tiny.defaultSettings
+//Tiny.TinyBar
 
 class Example1 {
     
@@ -24,6 +32,7 @@ class Example1 {
 }
 
 var ex1 = new Example1()
+window['ex1'] = ex1
 
 
 class Example2 {
@@ -55,6 +64,7 @@ class Example2 {
     }
 }
 var ex2 = new Example2()
+window['ex2'] = ex2
 
 
 class Example3 {
@@ -64,7 +74,7 @@ class Example3 {
 
     constructor() {
         this.bar = new Tiny.TinyBar(this.el, {
-            backgroundColor: 'green',
+            backgroundColor: 'orange',
             height: '4px',
             boxShadow: '',
             changeVisibilityElement: Tiny.BarElement.bar,
@@ -98,8 +108,9 @@ class Example3 {
     }
 }
 var ex3 = new Example3()
+window['ex3'] = ex3
 
-
+/*
 class Example4 {
 
     el = 'ex4'
@@ -123,6 +134,8 @@ class Example4 {
     }
 }
 var ex4 = new Example4()
+ window['ex4'] = ex4
+*/
 
 
 class Example5 {
@@ -155,6 +168,7 @@ class Example5 {
     }
 }
 var ex5 = new Example5()
+window['ex5'] = ex5
 
 
 
@@ -170,11 +184,20 @@ class Example6 {
     start() {
         this.bar.start().autoIncrement()
     }
+    
+    auto() {
+        this.bar.autoIncrement()
+    }
+    go(value: number) {
+        this.bar.go(value)
+    }
+    
     done(hideBar: boolean) {
         this.bar.done(hideBar)
     }
 }
 var ex6 = new Example6()
+window['ex6'] = ex6
 
 
 class Example7 {
@@ -205,3 +228,33 @@ class Example7 {
     }
 }
 var ex7 = new Example7()
+window['ex7'] = ex7
+
+
+class Example8 {
+
+    el = 'ex8'
+    bar = null
+
+    constructor() {
+        this.bar = new Tiny.TinyBar(this.el)
+    }
+
+    start() {
+        var self = this
+        this.bar.start(10, () => {
+            self.bar.go(20, () => {
+                self.bar.go(50, () => {
+                    self.bar.go(70, () => {
+                        self.bar.go(90, () => {
+                            self.bar.go(100)
+                        })
+                    })
+                })
+            })
+        })
+    }
+}
+var ex8 = new Example8()
+window['ex8'] = ex8
+

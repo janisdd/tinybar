@@ -12,10 +12,23 @@ Include `tinybar.js` in your html file
 <script src="path/to/tinybar.js"></script>
 
 ```
-or require in js via
+
+with typescript (the .d.ts file is used)
+```ts
+import {TinyBarExport} from "path/to/tinyBar";
+
+declare var TinyBar: TinyBarExport
+```
+
+or **require** in js via
 
 ```js
 var TinyBar = require('/path/to/tinybar')
+```
+with typescript (the .d.ts file is required)
+
+```ts
+import TinyBar = require('path/to/tinybar)
 ```
 
 ### Create bar
@@ -182,12 +195,15 @@ var tinyBar = new TinyBar.TinyBar('myHtmlId')
 
 ## Properties on a TinyBar instance
 
-* `version: string` ... the version ;D  
+* `version: string` ... the version ;D  **use as readonly**
 * `projectName: string` the project name, used for output
 * `settings: Settings` the settings of the current progressbar  
 TODO which options should not be changed??
 * `value: number` the current value (percentage 0 <= value <= 100) **use as readonly**
 * `status: ProgressbarStatus` the status of the bar  **use as readonly**
+* `shouldPositionTopMost: boolean`true: no parent provided so position at the top, false: parent id present **use as readonly**
+* `barWrapper:HTMLDivElement` the html div that represents the bar wrapper **use as readonly**
+* `bar:HTMLDivElement` the html div element represents the bar **use as readonly**
 
 
 
@@ -236,7 +252,15 @@ tinybar.done()
 
 For more examples see the `examples` dir 
 
+To run the require examples with webpack you will need webpack and the webpack-dev-server  
+
+*to install dependencies open a shell and cd to the example project folder (examples) and run:*  
+npm install  
+or  
+npm install webpack  
+npm install webpack-dev-server
+
+then you can execute `npm run dev` to start the webpack-dev-server (wich serves the bundle.js on port 8080)
+
 ## Hints
-
-All callbacks are called with the corresponding TinyBar as the `this` value
-
+* All callbacks are called with the corresponding TinyBar as the `this` value

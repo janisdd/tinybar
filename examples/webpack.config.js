@@ -4,11 +4,9 @@
 
 var path = require('path')
 
-var ComponentPlugin = require("umd-require-webpack-plugin");
-
 module.exports = {
   context: path.join(__dirname),
-  entry: './main.js',
+  entry: './require/ts/main.js',
   output: {
     path: path.join(__dirname),
     filename: 'bundle.js',
@@ -26,6 +24,5 @@ module.exports = {
     extensions: ['', '.js']
   },
   plugins: [
-    //new ComponentPlugin()
   ]
 }

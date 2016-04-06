@@ -1,0 +1,1 @@
+For the js require example go to the the ts example and look on the generated main.js file ;)

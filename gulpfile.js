@@ -73,11 +73,12 @@ gulp.task('full', function () {
 
     //copy ts files
     //gulp.src('src/*.ts')
+    /*
     gulp.src('src_ts/*.ts')
         .pipe(license('MIT', {tiny: true, year: 2016, organization: 'Janis Dähne'}))
         .pipe(gulp.dest(parentFolder + '/ts'))
-
-    /*
+    */
+    
     var tsResult2 =  gulp.src('src_ts/*.ts')
         .pipe(ts({
             module: "commonjs",
@@ -85,9 +86,8 @@ gulp.task('full', function () {
             removeComments: false,
             declaration: true
         }))
-    */
     
-    //generate no .d.ts files
-    //tsResult2.dts.pipe(gulp.dest(parentFolder))
+    //generate .d.ts files
+    tsResult2.dts.pipe(gulp.dest(parentFolder + '/js'))
 
 })

@@ -1,4 +1,6 @@
 'use strict';
+//output from ts file...
+
 var Tiny = TinyBar;
 var Example1 = (function () {
     function Example1() {
@@ -48,7 +50,7 @@ var Example3 = (function () {
         this.el = 'ex3';
         this.bar = null;
         this.bar = new Tiny.TinyBar(this.el, {
-            backgroundColor: 'green',
+            backgroundColor: 'orange',
             height: '4px',
             boxShadow: '',
             changeVisibilityElement: Tiny.BarElement.bar,
@@ -78,27 +80,31 @@ var Example3 = (function () {
     return Example3;
 }());
 var ex3 = new Example3();
-var Example4 = (function () {
-    function Example4() {
-        this.el = 'ex4';
-        this.bar = null;
+/*
+class Example4 {
+
+    el = 'ex4'
+    bar = null
+
+    constructor() {
         this.bar = new Tiny.TinyBar(this.el, {
             backgroundColor: 'orange',
             boxShadow: ''
-        });
+        })
     }
-    Example4.prototype.start = function () {
-        this.bar.start();
-    };
-    Example4.prototype.inc = function () {
-        this.bar.inc();
-    };
-    Example4.prototype.done = function () {
-        this.bar.done();
-    };
-    return Example4;
-}());
-var ex4 = new Example4();
+
+    start() {
+        this.bar.start()
+    }
+    inc() {
+        this.bar.inc()
+    }
+    done() {
+        this.bar.done()
+    }
+}
+var ex4 = new Example4()
+*/
 var Example5 = (function () {
     function Example5() {
         this.el = 'ex5';
@@ -134,6 +140,12 @@ var Example6 = (function () {
     Example6.prototype.start = function () {
         this.bar.start().autoIncrement();
     };
+    Example6.prototype.auto = function () {
+        this.bar.autoIncrement();
+    };
+    Example6.prototype.go = function (value) {
+        this.bar.go(value);
+    };
     Example6.prototype.done = function (hideBar) {
         this.bar.done(hideBar);
     };
@@ -164,3 +176,26 @@ var Example7 = (function () {
     return Example7;
 }());
 var ex7 = new Example7();
+var Example8 = (function () {
+    function Example8() {
+        this.el = 'ex8';
+        this.bar = null;
+        this.bar = new Tiny.TinyBar(this.el);
+    }
+    Example8.prototype.start = function () {
+        var self = this;
+        this.bar.start(10, function () {
+            self.bar.go(20, function () {
+                self.bar.go(50, function () {
+                    self.bar.go(70, function () {
+                        self.bar.go(90, function () {
+                            self.bar.go(100);
+                        });
+                    });
+                });
+            });
+        });
+    };
+    return Example8;
+}());
+var ex8 = new Example8();

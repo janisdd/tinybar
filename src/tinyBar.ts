@@ -63,9 +63,9 @@ class DefaultSettings implements Settings {
     boxShadow = '0 0 10px rgba(119,182,255,0.7)' //github
     zIndex = '1000'
 
-    changeValueProperty = null //right //null for all
+    changeValueProperty = null //null for all
     changeValueElement = BarElement.bar
-    changeVisibilityProperty = null //height //null for all
+    changeVisibilityProperty = null  //null for all
     changeVisibilityElement = BarElement.barWrapper
 
     applyInitialBarWrapperStyle(barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
@@ -110,12 +110,15 @@ class DefaultSettings implements Settings {
     }
 
     changeBarVisibility(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, newVisibility:boolean) {
-        if (newVisibility)
-            barWrapperDiv.style.height = this.height
-        else {
-            barWrapperDiv.style.height = '0px'
+        //use opacity here... looks nicer
+        if (newVisibility) {
+            //barWrapperDiv.style.height = this.height;
+            barWrapperDiv.style.opacity = '1';
         }
-
+        else {
+            //barWrapperDiv.style.height = '0px';
+            barWrapperDiv.style.opacity = '0';
+        }
     }
 
     changeValueFunc(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, value:number) {
@@ -186,19 +189,25 @@ interface Settings {
 
     /**
      * the property name of the value property (property that changes when the value should change)
-     * (default right)
+     * transition callbacks (handled by the transition queue) only fired when a transition ends and the propertyName
+     * was equal to the changeValueProperty
+     * so this is only needed if we use multiple animations to change the value (then we need to wait for the longest)
+     * (default null to allow all properties)
      */
     changeValueProperty?:string
 
     /**
      * the element that will used to change the value
-     * (default bar)
+     * (default null to allow all properties)
      */
     changeValueElement?:BarElement
 
     /**
      * the property name of the visibility property (property that changes when the visibility should change)
-     * (default height)
+     * transition callbacks (handled by the transition queue) only fired when a transition ends and the propertyName
+     * was equal to the changeValueProperty
+     * so this is only needed if we use multiple animations to change the visibility (then we need to wait for the longest)
+     * (default null to allow all properties)
      */
     changeVisibilityProperty?:string
 
@@ -212,28 +221,28 @@ interface Settings {
     /**
      * function that applies the initial style to the bar wrapper (the initial styles)
      * @param barWrapperDiv hte bar wrapper div
-     * @param shouldPositionTopMost true: no parent provided position on the top, false: parent provided
+     * @param shouldPositionTopMost true: no parent provided position at the top, false: parent provided
      */
     applyInitialBarWrapperStyle?:(barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) => void
 
     /**
      * a function that is called after applyInitialBarWrapperStyle to do some minor changes on the bar wrapper style
      * @param barWrapperDiv the bar wrapper
-     * @param shouldPositionTopMost true: no parent provided position on the top, false: parent provided
+     * @param shouldPositionTopMost true: no parent provided position at the top, false: parent provided
      */
     extendInitialBarWrapperStyle?:(barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) => void
 
     /**
      * function that applies the initial style to the bar (the initial styles)
      * @param barDiv the bar div
-     * @param shouldPositionTopMost true: no parent provided position on the top, false: parent provided
+     * @param shouldPositionTopMost true: no parent provided position at the top, false: parent provided
      */
     applyInitialBarStyle?:(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) => void
 
     /**
      *  a function that is called after applyInitialBarStyle to do some minor changes on the bar style
      * @param barDiv the bar
-     * @param shouldPositionTopMost true: no parent provided position on the top, false: parent provided
+     * @param shouldPositionTopMost true: no parent provided position at the top, false: parent provided
      */
     extendInitialBarStyle?:(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) => void
 
@@ -268,6 +277,7 @@ class TinyBar {
 
     /**
      * just the version
+     * (use as readonly)
      * @type {string}
      */
     version:string = '1.0.0'
@@ -286,42 +296,49 @@ class TinyBar {
 
     /**
      * the current status of the progressbar (initial | started | finished)
+     * (use as readonly)
      * @type {ProgressbarStatus}
      */
     status:ProgressbarStatus = ProgressbarStatus.initial
 
     /**
      * the current value of the progressbar
+     * (use as readonly)
      * @type {number}
      */
     value:number = 0
 
     /**
-     * true: no parent provided so position on the top, false: parent id present
+     * true: no parent provided so position at the top, false: parent id present
+     * (use as readonly)
      * @type {boolean}
      */
     shouldPositionTopMost:boolean = true
 
     /**
      * the html div that represents the bar wrapper
+     * (use as readonly)
      * @type {null}
      */
     barWrapper:HTMLDivElement = null
 
     /**
      * the html div element represents the bar
+     *  (use as readonly)
      * @type {null}
      */
     bar:HTMLDivElement = null
 
     /**
      * a queue to help with the transition events
+     * (use as readonly)
      * @type {null}
      */
     transitionQueue:_TransitioQueue = null
 
     /**
      * used to store the handle for the interval cleanup when incrementing to infinity
+     * (use as readonly)
      * @type {null}
      */
     tricklingHandle = null
@@ -329,15 +346,15 @@ class TinyBar {
     /**
      * creates a new tiny (progress) bar
      * @param settings the settings for the new tiny bar
-     * @param htmlParentDivId the parent div id or null (to position the progressbar on the top
+     * @param htmlParentDivId the parent div id or null (to position the progressbar at the top
      * @param domElementsCreatedCallback  called when the bar and bar wrapper are created and inserted in the dom
      */
     constructor(settings?:Settings | string, htmlParentDivId?:string | Settings, domElementsCreatedCallback?:() => void) {
-        
+
         //if first arg is a string assume that the second arg represents the settings...
         if (typeof settings === 'string') {
             let temp = htmlParentDivId
-            
+
             htmlParentDivId = <string>settings
             settings = temp
 
@@ -349,23 +366,23 @@ class TinyBar {
                 this._createBar(document.getElementById(<string>htmlParentDivId), false, domElementsCreatedCallback)
 
             } else {
-                //create bar on the top
+                //create bar at the top
                 this.shouldPositionTopMost = true
                 this._createBar(document.body, true, domElementsCreatedCallback)
             }
-            
+
         }
-        else if (typeof htmlParentDivId === 'string'){
+        else if (typeof htmlParentDivId === 'string') {
 
             //first apply settings
             this._setSettings(settings)
-            
+
             if (htmlParentDivId) {
                 this.shouldPositionTopMost = false
                 this._createBar(document.getElementById(htmlParentDivId), false, domElementsCreatedCallback)
 
             } else {
-                //create bar on the top
+                //create bar at the top
                 this.shouldPositionTopMost = true
                 this._createBar(document.body, true, domElementsCreatedCallback)
             }
@@ -373,23 +390,23 @@ class TinyBar {
             //first apply settings
             this._setSettings(settings)
 
-            //create bar on the top
+            //create bar at the top
             this.shouldPositionTopMost = true
             this._createBar(document.body, true, domElementsCreatedCallback)
 
         }
-        
+
         this.transitionQueue = new _TransitioQueue(this)
     }
 
     /**
      * appends the html for the bar and the bar wrapper (applies the initial state
      * @param parentHtmlElement the parent element where the tiny bar should be inserted (through appendChild)
-     * @param positionTopMost true: no parent provided position on the top, false: parent provided
+     * @param positionTopMost true: no parent provided position at the top, false: parent provided
      * @param domElementsCreatedCallback called when the bar and bar wrapper are created and inserted in the dom
      * @private
      */
-    private _createBar(parentHtmlElement: HTMLElement, positionTopMost:boolean, domElementsCreatedCallback?:() => void) {
+    private _createBar(parentHtmlElement:HTMLElement, positionTopMost:boolean, domElementsCreatedCallback?:() => void) {
 
         //create wrapper div
         let barWrapper = document.createElement('div')
@@ -479,9 +496,10 @@ class TinyBar {
     /**
      * starts the bar and shows it
      * @param startingValue the value to start with
+     * @param callback  callback called when the animation has finished
      * @returns {TinyBar}
      */
-    start(startingValue:number = 0.5) {
+    start(startingValue:number = 0.5, callback?: () => void) {
 
         if (this.status === ProgressbarStatus.started)
             return this
@@ -496,8 +514,7 @@ class TinyBar {
         this.settings.changeBarVisibility(this.barWrapper, this.bar, true)
 
         //set starting value
-        //??this._getValueChangingElement().style.transition = this.settings.changeValueTransition
-        this._go(startingValue, null, true)
+        this._go(startingValue, callback, true)
         this.value = startingValue
 
         return this
@@ -509,10 +526,11 @@ class TinyBar {
      * @param callback called when the animation has finished
      * @param hideBarWhenFinished when value >= 100 then the done method is called with this parameter as argument
      */
-    go(value:number, callback?:() => void,  hideBarWhenFinished:boolean = true) {
-        if (this.status !== ProgressbarStatus.started) return
+    go(value:number, callback?:() => void, hideBarWhenFinished:boolean = true) {
+        //if (this.status !== ProgressbarStatus.started) return
 
-        //e.g. when .done calls this with value 0 the bar status should stay finished...
+        //when the bar has finished and we call go to set the bar to a lower 
+        // value then the status needs to be started
         this.status = ProgressbarStatus.started
 
         this._go(value, callback, hideBarWhenFinished)
@@ -554,24 +572,27 @@ class TinyBar {
 
             } else {
                 let myValue = Math.min(value, 100)
-                this.value = myValue
 
-                //when calling .start(true).done(false) multiple times
-                //then the done will call _go(0) -> 0 < 100 -> fast transition is set and nev
-                //this._getValueChangingElement().style.transition = this.settings.changeValueTransition
+                if (myValue === 100) {
+                    this.done(hideBarWhenFinished, callback)
+                } else {
 
-                //provide callback
-                this.transitionQueue._executeActionAfterTransition(TransitionType.value, () => {
-                    if (callback)
-                        callback.call(self)
-                })
+                    this.value = myValue
 
-                this.transitionQueue._beforeTransition(TransitionType.value)
-                this.settings.changeValueFunc(this.barWrapper, this.bar, myValue)
+                    //when calling .start(true).done(false) multiple times
+                    //then the done will call _go(0) -> 0 < 100 -> fast transition is set and nev
+                    //this._getValueChangingElement().style.transition = this.settings.changeValueTransition
 
-                if (value >= 100) {
-                    this.done(hideBarWhenFinished, null)
+                    //provide callback
+                    this.transitionQueue._executeActionAfterTransition(TransitionType.value, () => {
+                        if (callback)
+                            callback.call(self)
+                    })
+
+                    this.transitionQueue._beforeTransition(TransitionType.value)
+                    this.settings.changeValueFunc(this.barWrapper, this.bar, myValue)
                 }
+
             }
         }
     }
@@ -684,7 +705,7 @@ class TinyBar {
      * starts automatically incrementing the value of the bar (calls .inc in a setInterval loop)
      * @param callback called when the value is set and the animation has finished
      */
-    autoIncrement(callback?: () => void) {
+    autoIncrement(callback?:() => void) {
 
         //first clear old increment else we could lose the clear handle for the old increment
         this.clearAutoIncrement()
@@ -725,7 +746,7 @@ class _TransitioQueue {
     /**
      * the related tiny bar
      */
-    tinyBar: TinyBar
+    tinyBar:TinyBar
 
     /**
      * the transition state of the tiny bar
@@ -875,12 +896,12 @@ class _TransitioQueue {
 }
 
 interface TinyBarExport {
-    TinyBar: new (settings?:Settings, htmlParentDivId?:string, domElementsCreatedCallback?:() => void) => TinyBar,
+    TinyBar:new (settings?:Settings, htmlParentDivId?:string, domElementsCreatedCallback?:() => void) => TinyBar,
     defaultSettings:Settings,
-    BarElement: BarElement,
-    TransitionState: TransitionState,
-    TransitionType: TransitionType,
-    ProgressbarStatus: ProgressbarStatus
+    BarElement:BarElement,
+    TransitionState:TransitionState,
+    TransitionType:TransitionType,
+    ProgressbarStatus:ProgressbarStatus
 }
 
 var myExport = { //: TinyBarExport
