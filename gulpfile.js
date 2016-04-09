@@ -89,5 +89,12 @@ gulp.task('full', function () {
     
     //generate .d.ts files
     tsResult2.dts.pipe(gulp.dest(parentFolder + '/js'))
+    
+    
+    //copy output to test dir
+    
+    gulp.src('dist/js/tinyBar.js').pipe(gulp.dest('examples/libs'))
+    gulp.src('dist/js/tinyBar.d.ts').pipe(gulp.dest('examples/libs'))
+    
 
 })

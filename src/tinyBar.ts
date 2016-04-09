@@ -1,5 +1,14 @@
 'use strict'
 
+
+//from http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
+function isHtmlElement(o:any) {
+    return (
+        typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+        o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
+    )
+}
+
 //inspired by https://github.com/rstacruz/nprogress/blob/master/nprogress.js
 enum BarElement {
     barWrapper,
@@ -346,24 +355,26 @@ class TinyBar {
     /**
      * creates a new tiny (progress) bar
      * @param settings the settings for the new tiny bar
-     * @param htmlParentDivId the parent div id or null (to position the progressbar at the top
+     * @param htmlParentDivId the parent div id OR the parent html div object OR null (to position the progressbar at the top)
      * @param domElementsCreatedCallback  called when the bar and bar wrapper are created and inserted in the dom
      */
-    constructor(settings?:Settings | string, htmlParentDivId?:string | Settings, domElementsCreatedCallback?:() => void) {
+    constructor(settings?:Settings | string, htmlParentDivId?:string | Settings | HTMLElement, domElementsCreatedCallback?:() => void) {
 
         //if first arg is a string assume that the second arg represents the settings...
-        if (typeof settings === 'string') {
+
+        if (typeof settings === 'string' || isHtmlElement(settings)) { //1. arg = html parent id or html parent object
             let temp = htmlParentDivId
 
-            htmlParentDivId = <string>settings
+            htmlParentDivId = <string|HTMLElement>settings
             settings = temp
 
             //first apply settings
             this._setSettings(settings)
 
             if (htmlParentDivId) {
+
                 this.shouldPositionTopMost = false
-                this._createBar(document.getElementById(<string>htmlParentDivId), false, domElementsCreatedCallback)
+                this._createBar(<string|HTMLElement>htmlParentDivId, false, domElementsCreatedCallback)
 
             } else {
                 //create bar at the top
@@ -372,21 +383,22 @@ class TinyBar {
             }
 
         }
-        else if (typeof htmlParentDivId === 'string') {
+        else if (typeof htmlParentDivId === 'string') { //1. arg = settings, 2. arg = html parent id
 
             //first apply settings
             this._setSettings(settings)
 
             if (htmlParentDivId) {
                 this.shouldPositionTopMost = false
-                this._createBar(document.getElementById(htmlParentDivId), false, domElementsCreatedCallback)
+                this._createBar(htmlParentDivId, false, domElementsCreatedCallback)
 
             } else {
                 //create bar at the top
                 this.shouldPositionTopMost = true
                 this._createBar(document.body, true, domElementsCreatedCallback)
             }
-        } else {
+        } else { //1. arg & 2. arg does not match 
+
             //first apply settings
             this._setSettings(settings)
 
@@ -406,7 +418,7 @@ class TinyBar {
      * @param domElementsCreatedCallback called when the bar and bar wrapper are created and inserted in the dom
      * @private
      */
-    private _createBar(parentHtmlElement:HTMLElement, positionTopMost:boolean, domElementsCreatedCallback?:() => void) {
+    private _createBar(parentHtmlElement:HTMLElement | string, positionTopMost:boolean, domElementsCreatedCallback?:() => void) {
 
         //create wrapper div
         let barWrapper = document.createElement('div')
@@ -429,7 +441,13 @@ class TinyBar {
         this.barWrapper = barWrapper
 
         barWrapper.appendChild(bar)
-        parentHtmlElement.appendChild(barWrapper)
+        
+        if (typeof parentHtmlElement === 'string') {
+            document.getElementById(parentHtmlElement).appendChild(barWrapper)
+        }
+        else {
+            parentHtmlElement.appendChild(barWrapper)
+        }
 
         if (domElementsCreatedCallback)
             domElementsCreatedCallback.call(this)
@@ -499,7 +517,7 @@ class TinyBar {
      * @param callback  callback called when the animation has finished
      * @returns {TinyBar}
      */
-    start(startingValue:number = 0.5, callback?: () => void) {
+    start(startingValue:number = 0.5, callback?:() => void) {
 
         if (this.status === ProgressbarStatus.started)
             return this

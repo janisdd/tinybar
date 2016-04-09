@@ -1,6 +1,6 @@
 # TinyBar
 
-A Tiny progressbar like on YouTube, Github, ...
+A tiny progressbar like on YouTube, Github, ...
 
 ![TinyBar Screenshot](https://raw.githubusercontent.com/janisdd/tinybar/master/screenshots/01.png)
 
@@ -34,13 +34,14 @@ import TinyBar = require('path/to/tinybar)
 ### Create bar
 
 ```js
-var tinyBar = new TinyBar.TinyBar([settings], [parentId], [callback])
+var tinyBar = new TinyBar.TinyBar([settings], [parent], [callback])
 ```
 * `settings: Settings ` the settings for the bar
-* `parentId: string` html id where the bar should be inserted (via append)
+* `parent: string | HTMLElement` html id where the bar should be inserted (via append) OR the html parent object
 * `callback: () => void` called when the dom elements were created and the bar is ready to be used
 
 **`settings` and `parentId` can be exchanged (the order shouldn't matter ...)**
+**to use the callback you need to provide settings and parent (can be both null)**
 
 so you could also do this
 
@@ -92,12 +93,12 @@ default: `'all 0.2s ease'`
     } else {
         barWrapperDiv.style.position = 'relative'
     }
-
+    
     barWrapperDiv.style.height = this.height
     barWrapperDiv.style.backgroundColor = this.wrapperBackgroundColor
     barWrapperDiv.style.zIndex = this.zIndex
     barWrapperDiv.style.transition = this.changeVisibilityTransition
-
+    
     this.extendInitialBarWrapperStyle(barWrapperDiv, shouldPositionTopMost)
 }
 ```
@@ -112,9 +113,9 @@ default: `'all 0.2s ease'`
  default:
 ```js
 {
-    barDiv.style.position = 'absolute'
+     barDiv.style.position = 'absolute'
     barDiv.style.left = '0'
-    barDiv.style.right = '100%'
+    barDiv.style.right = '100%' 
     barDiv.style.top = '0'
     barDiv.style.bottom = '0'
     barDiv.style.backgroundColor = this.backgroundColor
@@ -135,11 +136,11 @@ default: `'all 0.2s ease'`
  default:
 ```js
 {
-    if (newVisibility)
-            barWrapperDiv.style.height = this.height
-        else {
-            barWrapperDiv.style.height = '0px'
-        }
+    if (newVisibility) {
+        barWrapperDiv.style.opacity = '1';
+    } else {
+        barWrapperDiv.style.opacity = '0';
+    }
 }
 ```
  
@@ -218,9 +219,9 @@ TODO which options should not be changed??
 
 ## Functions on a TinyBar instance
 
-* `constructor(settings?:Settings, htmlParentDivId?:string, domElementsCreatedCallback?:() => void) => TinyBar`  
+* `constructor(settings?:Settings | string, htmlParentDivId?:string | Settings | HTMLElement, domElementsCreatedCallback?:() => void) => TinyBar`  
 `settings` the settings for the bar  
-`htmlParentDivId` the parent html id or null (in this case the bar is positioned fixed at the top)    
+`htmlParentDivId` htmlParentDivId the parent div id OR the parent html div object OR null (to position the progressbar at the top)    
 `domElementsCreatedCallback` called when the dom elements were created and the bar is ready to be used
 
 * `start(startingValue:number = 0.5) => TinyBar ` displays the bar and sets the given value  
