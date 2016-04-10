@@ -657,6 +657,10 @@ export class TinyBar {
      * if hideBar = false then the callback is called after the value transition has finished
      */
     done(hideBar:boolean = true, callback?:() => void) {
+
+        //if we havent started the bar yet do nothing...
+        if (this.status === ProgressbarStatus.initial) return
+        
         let self = this
 
         this.transitionQueue.valueChangedQueue = []

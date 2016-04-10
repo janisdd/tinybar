@@ -431,6 +431,9 @@ var TinyBar = (function () {
     TinyBar.prototype.done = function (hideBar, callback) {
         var _this = this;
         if (hideBar === void 0) { hideBar = true; }
+        //if we havent started the bar yet do nothing...
+        if (this.status === ProgressbarStatus.initial)
+            return;
         var self = this;
         this.transitionQueue.valueChangedQueue = [];
         this.transitionQueue.visibilityChangedQueue = [];
