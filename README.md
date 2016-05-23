@@ -33,6 +33,8 @@ import TinyBar = require('path/to/tinybar)
 
 ### Create bar
 
+Variables with `[]` are optional.
+
 ```js
 var tinyBar = new TinyBar.TinyBar([settings], [parent], [callback])
 ```
@@ -50,28 +52,44 @@ var tinyBar = new TinyBar.TinyBar([parentId], [settings], [callback])
 ```
 
 ## Settings 
+
+The transition properties **cannot** be set through the css property because you are able to change the html structure of the bar and we need to change the transition (backwards is faster) on the fly. 
+
+* `css: any` an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar
+default:
+```js
+{
+    backgroundColor: '#29d',
+    boxShadow: '0 0 10px rgba(119,182,255,0.7)',
+    position: 'absolute',
+    left: '0',
+    right: '100%', 
+    top: '0',
+    bottom: '0'
+}
+```
+* `cssWrapper: any` an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar wrapper
+default:
+```js
+{
+     height: '2px',
+        position: 'relative',
+        backgroundColor: 'transparent',
+        zIndex: '1050'
+}
+```
 * `wrapperCssClasses: string[]` the css classes to add the the bar wrapper  
 default: `[]`
 * `cssClasses: string[]` the css classes to add to the bar  
 default: `[]`
 * `incrementTimeoutInMs: number` the delay in ms, every tick the .inc method is called  
 default: `300`
-* `changeValueTransition: string` the transition for the bar when the value changes (must not be empty!)  
+* `changeValueTransition: string` the transition for the bar when the value changes (must not be empty! and **cannot** be set through the css property)  
 default: `'all 0.3s ease'`
-* `changeValueBackTransition: string`  the transition for the bar when animating from bigger to smaller value (backwards) (must not be empty!)  
+* `changeValueBackTransition: string`  the transition for the bar when animating from bigger to smaller value (backwards) (must not be empty! and **cannot** be set through the css property)  
 default: `'all 0.2s ease'`
-* `changeVisibilityTransition: string` the transition for the bar wrapper when the visibility (not the css value)  
+* `changeVisibilityTransition: string` the transition for the bar wrapper when the visibility (must not be empty! and **cannot** be set through the css property)    
  default: `'all 0.05s linear'`
-* `height: string` the height of the bar (applied to barWrapper)  
- default: `'2px'`
-* `wrapperBackgroundColor: string` the wrapper background color (applied to barWrapper)  
- default: `'transparent'`
-* `backgroundColor: string` the background color  
- default: `'#29d'`
-* `boxShadow: string` the box shadow  
- default: `'0 0 10px rgba(119,182,255,0.7)'`
-* `zIndex: string` the z index  
- default: `'1000'`
 * `changeValueProperty: string` the property name of the value property (property that changes when the value should change)  
  default: `null`
 * `changeVisibilityProperty: string` the property name of the visibility property (property that changes when the visibility should change)  
@@ -80,29 +98,37 @@ default: `'all 0.2s ease'`
  default: `BarElement.bar`
 * `changeValueElement: BarElement` the element that will used to change the value  
  default: `BarElement.barWrapper`
- 
 * `applyInitialBarWrapperStyle: (barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) => void` function that applies the initial style to the bar wrapper (the initial styles)  
- default:
+default:  
+
 ```js
 {
+    if (this.cssWrapper)
+        for (let key in this.cssWrapper) {
+            if (this.cssWrapper.hasOwnProperty(key) && barWrapperDiv.style[key] !== undefined) {
+                barWrapperDiv.style[key] = this.cssWrapper[key]
+            }
+        }
+
+    if (barWrapperDiv.style.transition) {
+        console.error('tinybar: the changeVisibilityTransition property must be set (not though css property) ')
+    }
+
+    barWrapperDiv.style.transition = this.changeVisibilityTransition
+
+
+    //override style...
     if (shouldPositionTopMost) {
         barWrapperDiv.style.position = 'fixed'
         barWrapperDiv.style.left = '0'
         barWrapperDiv.style.right = '0'
         barWrapperDiv.style.top = '0'
-    } else {
-        barWrapperDiv.style.position = 'relative'
     }
-    
-    barWrapperDiv.style.height = this.height
-    barWrapperDiv.style.backgroundColor = this.wrapperBackgroundColor
-    barWrapperDiv.style.zIndex = this.zIndex
-    barWrapperDiv.style.transition = this.changeVisibilityTransition
-    
+
     this.extendInitialBarWrapperStyle(barWrapperDiv, shouldPositionTopMost)
 }
 ```
- 
+
 * `extendInitialBarWrapperStyle: (barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) => void` a function that is called after applyInitialBarWrapperStyle to do some minor changes on the bar wrapper style  
  default:
 ```js
@@ -113,15 +139,20 @@ default: `'all 0.2s ease'`
  default:
 ```js
 {
-     barDiv.style.position = 'absolute'
-    barDiv.style.left = '0'
-    barDiv.style.right = '100%' 
-    barDiv.style.top = '0'
-    barDiv.style.bottom = '0'
-    barDiv.style.backgroundColor = this.backgroundColor
-    barDiv.style.transition = this.changeValueTransition
-    barDiv.style.boxShadow = this.boxShadow
+    if (this.css)
+        for (let key in this.css) {
+            if (this.css.hasOwnProperty(key) && barDiv.style[key] !== undefined) {
+                barDiv.style[key] = this.css[key]
+            }
+        }
 
+    if (barDiv.style.transition) {
+        console.error('tinybar: the changeValueTransition (& the changeValueBackTransition) property must be set (not though css property) ')
+    }
+
+    barDiv.style.transition = this.changeValueTransition
+
+    //let the user modify the style
     this.extendInitialBarStyle(barDiv, shouldPositionTopMost)
 }
 ```
@@ -249,7 +280,7 @@ Every time an instance of TinyBar is created the default settings are applied...
 to change the default settings (e.g. you want all bars to be black) try
 
 ```js
-TinyBar.defaultSettings.backgroundColor = 'black'
+TinyBar.defaultSettings.css.backgroundColor = 'black'
 ```
 where `TinyBar.defaultSettings` has the type `Settings`
 

@@ -2,3 +2,14 @@
 * BUG: calling tinyProgress.start(true).done(false) multiple times will break the bar
   this is because the transition is set to the fast transition but never back and somehow the transition events
   aren't called...
+
+* examples are not yet updated with the new css property
+
+
+WORKFLOW
+make all changes to src/tinyBar.ts AND src_tstinyBar.ts
+OR
+make all changes to src/tinyBar.ts then copy content and export all interfaces, classes in src_ts/tinyBar.ts
+
+then
+run gulp full

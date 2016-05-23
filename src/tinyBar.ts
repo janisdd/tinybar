@@ -51,91 +51,18 @@ interface TransitionEndEvent extends Event {
     pseudoElement:string
 }
 
-/**
- * a class for the default settings (class because of functions)
- */
-class DefaultSettings implements Settings {
-
-    incrementTimeoutInMs = 300
-
-    wrapperCssClasses = []
-    cssClasses = []
-    changeValueTransition = 'all 0.3s ease'
-    changeVisibilityTransition = 'all 0.2s ease'
-
-    //used when transitioning/animating backwards
-    changeValueBackTransition = 'all 0.05s linear'
-
-    height = '2px'
-    wrapperBackgroundColor = 'transparent'
-    backgroundColor = '#29d' //github: #77b6f
-    boxShadow = '0 0 10px rgba(119,182,255,0.7)' //github
-    zIndex = '1000'
-
-    changeValueProperty = null //null for all
-    changeValueElement = BarElement.bar
-    changeVisibilityProperty = null  //null for all
-    changeVisibilityElement = BarElement.barWrapper
-
-    applyInitialBarWrapperStyle(barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
-
-        if (shouldPositionTopMost) {
-            barWrapperDiv.style.position = 'fixed'
-            barWrapperDiv.style.left = '0'
-            barWrapperDiv.style.right = '0'
-            barWrapperDiv.style.top = '0'
-        } else {
-            barWrapperDiv.style.position = 'relative'
-        }
-
-        barWrapperDiv.style.height = this.height
-        barWrapperDiv.style.backgroundColor = this.wrapperBackgroundColor
-        barWrapperDiv.style.zIndex = this.zIndex
-        barWrapperDiv.style.transition = this.changeVisibilityTransition
-
-        this.extendInitialBarWrapperStyle(barWrapperDiv, shouldPositionTopMost)
-    }
-
-    extendInitialBarWrapperStyle(barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
-        //do nothing here...
-    }
-
-    applyInitialBarStyle(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
-        barDiv.style.position = 'absolute'
-        barDiv.style.left = '0'
-        barDiv.style.right = '100%' //we will change only this value
-        barDiv.style.top = '0'
-        barDiv.style.bottom = '0'
-        barDiv.style.backgroundColor = this.backgroundColor
-        barDiv.style.transition = this.changeValueTransition
-        barDiv.style.boxShadow = this.boxShadow
-
-        //let the user modify the style
-        this.extendInitialBarStyle(barDiv, shouldPositionTopMost)
-    }
-
-    extendInitialBarStyle(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
-        //do nothing here...
-    }
-
-    changeBarVisibility(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, newVisibility:boolean) {
-        //use opacity here... looks nicer
-        if (newVisibility) {
-            //barWrapperDiv.style.height = this.height;
-            barWrapperDiv.style.opacity = '1';
-        }
-        else {
-            //barWrapperDiv.style.height = '0px';
-            barWrapperDiv.style.opacity = '0';
-        }
-    }
-
-    changeValueFunc(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, value:number) {
-        barDiv.style.right = (100 - value) + '%'
-    }
-}
 
 interface Settings {
+
+    /**
+     * an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar
+     */
+    css:any
+
+    /**
+     * an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar wrapper
+     */
+    cssWrapper:any
 
     /**
      * the css classes to add the the bar wrapper
@@ -274,10 +201,156 @@ interface Settings {
 }
 
 /**
+ * a class for the default settings (class because of functions)
+ */
+class DefaultSettings implements Settings {
+
+    /**
+     * an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar
+     * (this will override other style settings in this class in the extendInitialBarWrapperStyle function)
+     */
+    css = {
+        backgroundColor: '#29d', //github: #77b6f
+        boxShadow: '0 0 10px rgba(119,182,255,0.7)', //github
+        position: 'absolute',
+        left: '0',
+        right: '100%', //we will change only this value
+        top: '0',
+        bottom: '0'
+    }
+
+    /**
+     * an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar wrapper
+     * (this will override other style settings in this class in the applyInitialBarWrapperStyle function)
+     */
+    cssWrapper = {
+        height: '2px',
+        position: 'relative',
+        backgroundColor: 'transparent',
+        zIndex: '1050'
+    }
+
+    incrementTimeoutInMs = 300
+
+    wrapperCssClasses = []
+    cssClasses = []
+
+    //can't be set through css prop because user could change the html content of the bar & the wrapper
+    changeValueTransition = 'all 0.3s ease'
+    changeVisibilityTransition = 'all 0.2s ease'
+    //used when transitioning/animating backwards
+    changeValueBackTransition = 'all 0.05s linear'
+
+    changeValueProperty = null //null for all
+    changeValueElement = BarElement.bar
+    changeVisibilityProperty = null  //null for all
+    changeVisibilityElement = BarElement.barWrapper
+
+    applyInitialBarWrapperStyle(barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
+
+        if (this.cssWrapper)
+            for (let key in this.cssWrapper) {
+                if (this.cssWrapper.hasOwnProperty(key) && barWrapperDiv.style[key] !== undefined) {
+                    barWrapperDiv.style[key] = this.cssWrapper[key]
+                }
+            }
+
+        if (barWrapperDiv.style.transition) {
+            console.error('tinybar: the changeVisibilityTransition property must be set (not though css property) ')
+        }
+
+        barWrapperDiv.style.transition = this.changeVisibilityTransition
+
+
+        //override style...
+        if (shouldPositionTopMost) {
+            barWrapperDiv.style.position = 'fixed'
+            barWrapperDiv.style.left = '0'
+            barWrapperDiv.style.right = '0'
+            barWrapperDiv.style.top = '0'
+        }
+
+        this.extendInitialBarWrapperStyle(barWrapperDiv, shouldPositionTopMost)
+    }
+
+    extendInitialBarWrapperStyle(barWrapperDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
+        //do nothing here...
+    }
+
+    applyInitialBarStyle(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
+
+        if (this.css)
+            for (let key in this.css) {
+                if (this.css.hasOwnProperty(key) && barDiv.style[key] !== undefined) {
+                    barDiv.style[key] = this.css[key]
+                }
+            }
+
+        if (barDiv.style.transition) {
+            console.error('tinybar: the changeValueTransition (& the changeValueBackTransition) property must be set (not though css property) ')
+        }
+
+        barDiv.style.transition = this.changeValueTransition
+
+        //let the user modify the style
+        this.extendInitialBarStyle(barDiv, shouldPositionTopMost)
+    }
+
+    extendInitialBarStyle(barDiv:HTMLDivElement, shouldPositionTopMost:boolean) {
+        //do nothing here...
+    }
+
+    changeBarVisibility(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, newVisibility:boolean) {
+        //use opacity here... looks nicer
+        if (newVisibility) {
+            //barWrapperDiv.style.height = this.height;
+            barWrapperDiv.style.opacity = '1';
+        }
+        else {
+            //barWrapperDiv.style.height = '0px';
+            barWrapperDiv.style.opacity = '0';
+        }
+    }
+
+    changeValueFunc(barWrapperDiv:HTMLDivElement, barDiv:HTMLDivElement, value:number) {
+        barDiv.style.right = (100 - value) + '%'
+    }
+}
+
+/**
  * the global default (static) settings for a tiny bar
  * @type {DefaultSettings}
  */
 var defaultSettings = new DefaultSettings()
+
+
+/**
+ * extends an obj with the values from ext (hasOwnProperty checked)
+ * @param obj
+ * @param ext
+ * @param recursively true: extend obj values also with extend (if obj values are objects too),
+ * false: only copy values (regardless of type)
+ * @return the extended obj
+ */
+function extendObject(obj:any, ext:any, recursively:boolean = true) {
+
+    for (let key in ext) {
+        if (ext.hasOwnProperty(key)) {
+
+            let value = ext[key]
+
+            if (recursively && typeof value === 'object' && value !== null) { //typeof null === 'object' !!
+
+                extendObject(obj[key], ext[key], recursively)
+
+            } else {
+                obj[key] = ext[key]
+            }
+        }
+    }
+    return obj
+}
+
 
 /**
  * a tiny (progress) bar
@@ -363,13 +436,13 @@ class TinyBar {
         //if first arg is a string assume that the second arg represents the settings...
 
         if (typeof settings === 'string' || isHtmlElement(settings)) { //1. arg = html parent id or html parent object
-            let temp = htmlParentDivId
+            let temp = <Settings>htmlParentDivId
 
             htmlParentDivId = <string|HTMLElement>settings
             settings = temp
 
             //first apply settings
-            this._setSettings(settings)
+            this._setSettings(<Settings>settings)
 
             if (htmlParentDivId) {
 
@@ -386,7 +459,7 @@ class TinyBar {
         else if (typeof htmlParentDivId === 'string') { //1. arg = settings, 2. arg = html parent id
 
             //first apply settings
-            this._setSettings(settings)
+            this._setSettings(<Settings>settings)
 
             if (htmlParentDivId) {
                 this.shouldPositionTopMost = false
@@ -400,7 +473,7 @@ class TinyBar {
         } else { //1. arg & 2. arg does not match 
 
             //first apply settings
-            this._setSettings(settings)
+            this._setSettings(<Settings>settings)
 
             //create bar at the top
             this.shouldPositionTopMost = true
@@ -441,7 +514,7 @@ class TinyBar {
         this.barWrapper = barWrapper
 
         barWrapper.appendChild(bar)
-        
+
         if (typeof parentHtmlElement === 'string') {
             document.getElementById(parentHtmlElement).appendChild(barWrapper)
         }
@@ -462,25 +535,15 @@ class TinyBar {
      */
     private _setSettings(settings:Settings) {
 
-        //first apply the defaultSettings
-
-        for (let key in defaultSettings) {
-            if (defaultSettings.hasOwnProperty(key)) {
-                let value = defaultSettings[key]
-                if (value !== undefined)
-                    this.settings[key] = value
-            }
-        }
+        //apply the defaultSettings because this.settings is initialized
+        //with a new instance of DefaultSettings and the defaultSettings var could have changed
+        extendObject(this.settings, defaultSettings, true)
 
         //then user settings if any
-        if (settings)
-            for (let key in settings) {
-                if (settings.hasOwnProperty(key)) {
-                    let value = settings[key]
-                    if (value !== undefined)
-                        this.settings[key] = value
-                }
-            }
+        if (settings) {
+            extendObject(this.settings, settings, true)
+        }
+        
         /*
          if (this.settings.changeValueElement === this.settings.changeVisibilityElement) {
 
@@ -489,7 +552,6 @@ class TinyBar {
          'because we need to watch the transition events')
          }
          }
-
          normally the bar is only animated by this class and only the appropriated properties so nully value should be ok
          -> no filter for transitionend events in the transition queue
          if (!this.settings.changeValueProperty) {
@@ -657,10 +719,10 @@ class TinyBar {
      * if hideBar = false then the callback is called after the value transition has finished
      */
     done(hideBar:boolean = true, callback?:() => void) {
-        
+
         //if we havent started the bar yet do nothing...
         if (this.status === ProgressbarStatus.initial) return
-        
+
         let self = this
 
         this.transitionQueue.valueChangedQueue = []

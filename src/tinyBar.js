@@ -40,51 +40,76 @@ var ProgressbarStatus;
  */
 var DefaultSettings = (function () {
     function DefaultSettings() {
+        /**
+         * an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar
+         * (this will override other style settings in this class in the extendInitialBarWrapperStyle function)
+         */
+        this.css = {
+            backgroundColor: '#29d',
+            boxShadow: '0 0 10px rgba(119,182,255,0.7)',
+            position: 'absolute',
+            left: '0',
+            right: '100%',
+            top: '0',
+            bottom: '0'
+        };
+        /**
+         * an object with key-value pairs (key css style name [htmlObj.style.key], value style value) to style the bar wrapper
+         * (this will override other style settings in this class in the applyInitialBarWrapperStyle function)
+         */
+        this.cssWrapper = {
+            height: '2px',
+            position: 'relative',
+            backgroundColor: 'transparent',
+            zIndex: '1050'
+        };
         this.incrementTimeoutInMs = 300;
         this.wrapperCssClasses = [];
         this.cssClasses = [];
+        //can't be set through css prop because user could change the html content of the bar & the wrapper
         this.changeValueTransition = 'all 0.3s ease';
         this.changeVisibilityTransition = 'all 0.2s ease';
         //used when transitioning/animating backwards
         this.changeValueBackTransition = 'all 0.05s linear';
-        this.height = '2px';
-        this.wrapperBackgroundColor = 'transparent';
-        this.backgroundColor = '#29d'; //github: #77b6f
-        this.boxShadow = '0 0 10px rgba(119,182,255,0.7)'; //github
-        this.zIndex = '1000';
         this.changeValueProperty = null; //null for all
         this.changeValueElement = BarElement.bar;
         this.changeVisibilityProperty = null; //null for all
         this.changeVisibilityElement = BarElement.barWrapper;
     }
     DefaultSettings.prototype.applyInitialBarWrapperStyle = function (barWrapperDiv, shouldPositionTopMost) {
+        if (this.cssWrapper)
+            for (var key in this.cssWrapper) {
+                if (this.cssWrapper.hasOwnProperty(key) && barWrapperDiv.style[key] !== undefined) {
+                    barWrapperDiv.style[key] = this.cssWrapper[key];
+                }
+            }
+        if (barWrapperDiv.style.transition) {
+            console.error('tinybar: the changeVisibilityTransition property must be set (not though css property) ');
+        }
+        barWrapperDiv.style.transition = this.changeVisibilityTransition;
+        //override style...
         if (shouldPositionTopMost) {
             barWrapperDiv.style.position = 'fixed';
             barWrapperDiv.style.left = '0';
             barWrapperDiv.style.right = '0';
             barWrapperDiv.style.top = '0';
         }
-        else {
-            barWrapperDiv.style.position = 'relative';
-        }
-        barWrapperDiv.style.height = this.height;
-        barWrapperDiv.style.backgroundColor = this.wrapperBackgroundColor;
-        barWrapperDiv.style.zIndex = this.zIndex;
-        barWrapperDiv.style.transition = this.changeVisibilityTransition;
         this.extendInitialBarWrapperStyle(barWrapperDiv, shouldPositionTopMost);
     };
     DefaultSettings.prototype.extendInitialBarWrapperStyle = function (barWrapperDiv, shouldPositionTopMost) {
         //do nothing here...
     };
     DefaultSettings.prototype.applyInitialBarStyle = function (barDiv, shouldPositionTopMost) {
-        barDiv.style.position = 'absolute';
-        barDiv.style.left = '0';
-        barDiv.style.right = '100%'; //we will change only this value
-        barDiv.style.top = '0';
-        barDiv.style.bottom = '0';
-        barDiv.style.backgroundColor = this.backgroundColor;
+        if (this.css)
+            for (var key in this.css) {
+                if (this.css.hasOwnProperty(key) && barDiv.style[key] !== undefined) {
+                    barDiv.style[key] = this.css[key];
+                }
+            }
+        if (barDiv.style.transition) {
+            console.error('tinybar: the changeValueTransition (& the changeValueBackTransition) property must be set (not though css property) ');
+        }
         barDiv.style.transition = this.changeValueTransition;
-        barDiv.style.boxShadow = this.boxShadow;
         //let the user modify the style
         this.extendInitialBarStyle(barDiv, shouldPositionTopMost);
     };
@@ -112,6 +137,29 @@ var DefaultSettings = (function () {
  * @type {DefaultSettings}
  */
 var defaultSettings = new DefaultSettings();
+/**
+ * extends an obj with the values from ext (hasOwnProperty checked)
+ * @param obj
+ * @param ext
+ * @param recursively true: extend obj values also with extend (if obj values are objects too),
+ * false: only copy values (regardless of type)
+ * @return the extended obj
+ */
+function extendObject(obj, ext, recursively) {
+    if (recursively === void 0) { recursively = true; }
+    for (var key in ext) {
+        if (ext.hasOwnProperty(key)) {
+            var value = ext[key];
+            if (recursively && typeof value === 'object' && value !== null) {
+                extendObject(obj[key], ext[key], recursively);
+            }
+            else {
+                obj[key] = ext[key];
+            }
+        }
+    }
+    return obj;
+}
 /**
  * a tiny (progress) bar
  */
@@ -261,23 +309,13 @@ var TinyBar = (function () {
      * @returns {TinyBar} the bar
      */
     TinyBar.prototype._setSettings = function (settings) {
-        //first apply the defaultSettings
-        for (var key in defaultSettings) {
-            if (defaultSettings.hasOwnProperty(key)) {
-                var value = defaultSettings[key];
-                if (value !== undefined)
-                    this.settings[key] = value;
-            }
-        }
+        //apply the defaultSettings because this.settings is initialized
+        //with a new instance of DefaultSettings and the defaultSettings var could have changed
+        extendObject(this.settings, defaultSettings, true);
         //then user settings if any
-        if (settings)
-            for (var key in settings) {
-                if (settings.hasOwnProperty(key)) {
-                    var value = settings[key];
-                    if (value !== undefined)
-                        this.settings[key] = value;
-                }
-            }
+        if (settings) {
+            extendObject(this.settings, settings, true);
+        }
         /*
          if (this.settings.changeValueElement === this.settings.changeVisibilityElement) {
 
@@ -286,7 +324,6 @@ var TinyBar = (function () {
          'because we need to watch the transition events')
          }
          }
-
          normally the bar is only animated by this class and only the appropriated properties so nully value should be ok
          -> no filter for transitionend events in the transition queue
          if (!this.settings.changeValueProperty) {
